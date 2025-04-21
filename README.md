@@ -86,6 +86,67 @@ Omdat mogelijk de kernel is geüpdatet, voeren we een reboot uit:
 
 ```sudo reboot```
 
+## Statisch IP adres instellen
+
+Wijzigen van het IP-adres naar een statisch IP, zodat dit niet meer wijzigt na een reboot. Op deze manier is de server vanaf de host altijd via dit IP benaderbaar. Dit is ook belangrijk voor het straks verwijzen naar deze server d.m.v. een domeinnaam.
+
+```sudo nmcli con modify ens33 ipv4.addresses 172.23.88.98/20```
+
+```sudo nmcli con modify ens33 ipv4.gateway 172.23.80.1```
+
+```sudo nmcli con modify ens33 ipv4.dns "172.23.80.1"```
+
+```sudo nmcli con modify ens33 ipv4.method manual```
+
+Na de wijzigingen de netwerkadapter uit- en inschakelen, zodat deze instellingen actief worden:
+
+```sudo nmcli con down ens33```
+
+```sudo nmcli con up ens33```
+
+Controleren of de configuratie goed is gegaan:
+
+```ip adress```
+
+Geeft:
+
+```
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:ec:e2:eb brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    altname enx000c29ece2eb
+    inet 172.23.88.98/20 brd 172.23.95.255 scope global noprefixroute ens33
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:feec:e2eb/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+
+## Domeinnaamverwijzing
+
+Om de server bereikbaar te maken onder een domeinnaam moet deze toegevoegd worden aan een DNS-server d.m.v. een zogenaamd A-record.
+
+Het volgende record is toegevoegd:
+
+```DNS
+172.23.88.98 linux.martencs.nl
+```
+
+Vervolgens is op de server gecontroleerd of deze juist _resolved_:
+
+```dig +short A linux.martencs.nl```
+
+Met als resultaat:
+
+```
+172.23.88.98
+```
+
+Dit betekent dat nu ook bijvoorbeeld de volgende URL's kunnen worden gebruikt vanaf het host-systeem om de server te benaderen:
+
+- http://linux.martencs.nl/
+- http://linux.martencs.nl/alice
+
 ## Installatie Apache webserver en PHP
 We willen een webserver draaien waarbij gebruik kan worden gemaakt van PHP. Daarvoor installeren we Apache en starten we deze:
 
@@ -97,7 +158,17 @@ Om te controleren dat Apache draait typen we:
 
 ```sudo systemctl status httpd```
 
-En gaan we in browser naar http://\<server-ip>. Dit geeft het volgende resultaat:
+![Apache Running Check](documentation/apache-running-check.png)
+
+Vervolgens moeten we de server nog beschikbaar maken van buitenaf, door de firewall te configureren:
+
+```sudo firewall-cmd --permanent --add-service=http```
+
+```sudo firewall-cmd --permanent --add-service=https```
+
+```sudo firewall-cmd --reload```
+
+We gaan nu op de host-machine in browser naar http://linux.martencs.nl om te controleren of de server extern bereikbaar is. Dit geeft het volgende resultaat:
 
 ![Apache Fresh Install](documentation/apache-fresh-install.png)
 
@@ -121,7 +192,7 @@ En type de volgende code:
 
 Sla op met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en sluit af met <kbd>CTRL</kbd>-<kbd>X</kbd>
 
-Roep vervolgens in de browser de volgende pagina op http://\<server-ip>/info.php. Dit geeft het volgende resultaat:
+Roep vervolgens in de browser de volgende pagina op http://linux.martencs.nl/info.php. Dit geeft het volgende resultaat:
 
 ![Apache Test Install](documentation/apache-test-install.png)
 
@@ -144,7 +215,7 @@ Dit script wordt op de volgende manier aangemaakt:
 
 ```nano create_user_site.sh```
 
-De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de functionaliteit te beschrijven.
+> ℹ️ De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.
 
 Sla op met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en sluit af met <kbd>CTRL</kbd>-<kbd>X</kbd>
 
@@ -156,13 +227,23 @@ Om vervolgens een gebruiker en home-folder aan te maken voor alice en deze folde
 
 ```./create_student_site.sh alice```
 
-Je kunt nu navigeren naar http://\<server-ip>/alice
+Je kunt nu vanaf de host navigeren naar http://linux.martencs.nl/alice. Dit geeft het volgende resultaat:
 
-Ook kan alice nu SFTP gebruiken. Hiervoor moet de private key die getoond wordt in de output van het script worden opgeslagen worden in een bestand.
+![Apache Test Install](documentation/apache-alice-webfolder.png)
 
-```sftp -i keyfile gebruiker@<server-ip>```
+Ook kan alice nu SFTP gebruiken vanaf een andere machine. Hiervoor moet de private key die getoond wordt in de output van het script worden opgeslagen worden in het bestand alice.key op de machine waar vanaf ze wil connecten. Vervolgens kan door middel van het volgende commando op deze machine een sftp-sessie worden gestart:
 
-Voor de gebruiker _marten_ kan ook op deze manier een webfolder aangemaakt en SFTP toegang geconfigureerd:
+```sftp -i alice.key alice@linux.martencs.nl```
+
+SSH wordt geweigerd:
+
+```ssh -i alice.key alice@linux.martencs.nl```
+
+Resultaat:
+
+![SFTP en SSH Alice](documentation/sftp-ssh-alice.png)
+
+Voor de gebruiker _marten_ kan ook een webfolder aangemaakt en SFTP toegang geconfigureerd:
 
 ```./create_student_site.sh marten```
 
@@ -186,3 +267,11 @@ Match User marten
 ```
 
 Hiermee wordt de gebruiker _marten_ niet meer beperkt tot SFTP en niet gelockt in zijn eigen home directory.
+
+Wanneer nu bijvoorbeeld met WinSCP een SFTP-connectie wordt gemaakt, resulteert dat in de volgende verbinding:"
+
+![WinSCP user marten](documentation/winscp-user-marten.png)
+
+## HTTPS Configureren (incl. certificaat)
+
+todo
