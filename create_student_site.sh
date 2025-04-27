@@ -13,7 +13,7 @@ SSHD_CONFIG="/etc/ssh/sshd_config"
 SSH_DIR="$USER_HOME/.ssh"
 PRIVATE_KEY="./${USERNAME}_sftp_key"
 
-# === Check of er een gebruiker (student) is meegegeven als parameter ===
+# === Stop wanneer geen gebruiker (student) is meegegeven als parameter ===
 if [ -z "$USERNAME" ]; then
     echo "Usage: $0 <username>"
     exit 1
@@ -46,7 +46,7 @@ sudo chown "$USERNAME:$USERNAME" "$WEB_ROOT"
 echo "<h1>Hello from $USERNAME!</h1>" | sudo tee "$WEB_ROOT/index.html" > /dev/null
 sudo chown "$USERNAME:$USERNAME" "$WEB_ROOT/index.html"
 
-# === Configure Apache alias ===
+# === Configureer Apache alias ===
 # voeg een alias toe zodat de bestanden in public_html van de gebruiker op de webserver
 # toegankelijk zijn onder /gebruiker (voegt toe aan bestand $APACHE_ALIAS_CONF)
 if ! grep -q "/$USERNAME" "$APACHE_ALIAS_CONF" 2>/dev/null; then

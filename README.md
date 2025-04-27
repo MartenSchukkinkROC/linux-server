@@ -126,7 +126,7 @@ Geeft:
 
 Om de server bereikbaar te maken onder een domeinnaam moet deze toegevoegd worden aan een DNS-server d.m.v. een zogenaamd A-record.
 
-Het volgende record is toegevoegd:
+Het volgende record is toegevoegd aan de nameserver voor martencs.nl:
 
 ```DNS
 172.23.88.98 linux.martencs.nl
@@ -213,7 +213,7 @@ Het script om de webfolder aan te maken voor de student vraagt als parameter de 
 
 Dit script wordt op de volgende manier aangemaakt:
 
-```nano create_user_site.sh```
+```nano create_student_site.sh```
 
 > ℹ️ De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.
 
@@ -272,6 +272,83 @@ Wanneer nu bijvoorbeeld met WinSCP een SFTP-connectie wordt gemaakt, resulteert 
 
 ![WinSCP user marten](documentation/winscp-user-marten.png)
 
+## Webfolder verwijderen voor de student
+
+Het is ook wenselijk om webfolders van studenten weer op te kunnen ruimen. Ook hiervoor is een script gemaakt.
+
+Het script om de webfolder weer te verwijderen voor de student vraagt als parameter de studentcode van de student:
+
+- Het verwijdert de folder onder /studentcode in Apache
+- Het verwijdert de SFTP-configuratie
+- Het verwijdert (optioneel) de gebruiker
+  - Maakt een backup van de home folder
+  - Verwijdert de gebruiker
+  - Verwijdert de home folder
+  - Doet dit alleen wanneer de gebruiker geen systeem/admin gebruiker is
+
+Dit script wordt op de volgende manier aangemaakt:
+
+```nano remove_student_site.sh```
+
+> ℹ️ De code voor dit script is te vinden in [remove_student_site.sh](remove_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.
+
+Om het script te kunnen uitvoeren moet het executable gemaakt worden:
+
+```chmod +x remove_student_site.sh```
+
+Om vervolgens een gebruiker en home-folder aan te maken voor alice en deze folder toegankelijk te maken via SFTP, gebruik makend van een private key, kan het script als volgt worden aangeroepen:
+
+```./remove_student_site.sh alice```
+
+Wanneer ook de gebruiker moet worden verwijderd:
+
+```./remove_student_site.sh alice delete```
+
 ## HTTPS Configureren (incl. certificaat)
 
-todo
+Enable EPEL
+
+```sudo dnf install epel-release -y```
+
+Installeer en activeer snap en creeer een symbolic link naar snap
+
+```sudo dnf install snapd -y```  
+
+```sudo systemctl enable --now snapd.socket```
+
+```sudo ln -s /var/lib/snapd/snap /snap```
+
+Installeer certbot en creeer een symbolic link naar certbot
+
+```sudo snap install --classic certbot```
+
+```sudo ln -s /snap/bin/certbot /usr/bin/certbot```
+
+Vervolgens maken we een certificaat aan voor het domein linux.martencs.nl. Omdat dit domein niet van buitenaf door Let's Encrypt te bereiken is (maar alleen vanaf onze host computer), gebruiken we de optie om een TXT-record toe te voegen aan de DNS om te bewijzen dat het domein van ons is.
+Dat doen we als volgt:
+
+
+```sudo certbot certonly --manual --preferred-challenges dns -d linux.martencs.nl```
+
+Na verificatie van het domein is het certificaat aangemaakt in de folder ```/etc/letsencrypt/live/linux.martencs.nl/```
+
+Er staan hier twee bestanden:
+
+- ```fullchain.pem``` — your full certificate (cert + chain)
+
+- ```privkey.pem``` — your private key
+
+Zorg ervoor dat Apache gebruik maakt van deze certificaten door de SSL configuratie aan te passen:
+
+```nano /etc/httpd/conf.d/ssl.conf```
+
+Pas de volgende regels aan:
+
+```
+SSLCertificateFile /etc/letsencrypt/live/linux.marten.nl/fullchain.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/linux.marten.nl/privkey.pem
+```
+
+Start vervolgens Apache opnieuw:
+
+```sudo systemctl reload httpd```
