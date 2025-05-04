@@ -142,10 +142,7 @@ Met als resultaat:
 172.24.245.109
 ```
 
-Dit betekent dat nu ook bijvoorbeeld de volgende URL's kunnen worden gebruikt vanaf het host-systeem om de server te benaderen:
-
-- http://linux.martencs.nl/
-- http://linux.martencs.nl/alice
+Op deze manier is de machine ook bereikbaar via de hostname ```linux.martencs.nl``` in plaats van het IP. Dit is belangrijk voor de installatie van de Apache server en HTTPS. 
 
 ## Installatie Apache webserver en PHP
 We willen een webserver draaien waarbij gebruik kan worden gemaakt van PHP. Daarvoor installeren we Apache en starten we deze:
@@ -213,7 +210,7 @@ Dit script wordt op de volgende manier aangemaakt:
 
 ```nano create_student_site.sh```
 
-> ℹ️ De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.
+ℹ️ **De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
 Sla op met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en sluit af met <kbd>CTRL</kbd>-<kbd>X</kbd>
 
@@ -288,7 +285,7 @@ Dit script wordt op de volgende manier aangemaakt:
 
 ```nano remove_student_site.sh```
 
-> ℹ️ De code voor dit script is te vinden in [remove_student_site.sh](remove_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.
+ℹ️ **De code voor dit script is te vinden in [remove_student_site.sh](remove_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
 Om het script te kunnen uitvoeren moet het executable gemaakt worden:
 
