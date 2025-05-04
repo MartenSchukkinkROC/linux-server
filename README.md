@@ -1,5 +1,24 @@
 # Linux Server project
 
+
+<table>
+<tr><td>Naam</td><td>Marten Schukkink</td></tr>
+<tr><td>Studentnummer</td><td>s1205450</td></tr>
+<tr><td>Opleiding</td><td>Lerarenopleiding technisch beroepsonderwijs via Kopopleiding</td></tr>
+<tr><td>School</td><td>Windesheim</td></tr>
+<tr><td>Af te ronden onderwijseenheid</td><td>ENBO-ICT.B4.X.22 Linux</td></tr>
+<tr><td>Docent</td><td>Jan Verbaan</td></tr>
+</table>
+
+
+### Gebruik van AI
+
+Tijdens de voorbereiding van dit werk heb ik ChatGPT (GPT 4o) gebruikt om te helpen bij het configureren van de Linux server die voor deze opdracht moet worden gerealiseerd. Hierbij heb ik ChatGTP gevraagd om voorstellen te doen voor de implementatie van verschillende onderdelen van de opdracht. Deze voorstellen zijn daarna doorgevoerd, waarbij vrijwel altijd aanpassingen zijn gedaan aangezien de context waarin de opdracht wordt uitgevoerd afwijkt van de context waarbinnen ChatGPT een antwoord formuleert. 
+
+Na het gebruik van deze tool heb ik de uitkomsten ervan uitvoerig aangepast om ervoor te zorgen dat mijn werk, mijn eigen competenties en leeruitkomsten reflecteert. Ik draag de volledig verantwoordelijkheid voor de inhoud van dit werk. Ik ben me ervan bewust dat mijn handelen of
+nalaten van handelen dat erop is gericht of tot gevolg heeft dat het vormen van een juist oordeel omtrent mijn kennis, inzicht en vaardigheden wordt belemmerd, kan worden beschouwd als fraude. Ik ben mij ervan bewust dat het letterlijk overnemen van stukken tekst/code, etc van een AI
+een juist oordeel over mijn kennis en vaardigheden in de weg staat en dus beschouwd wordt als fraude.
+
 ## Use case
 In onze opleiding Softwaredeveloper leren de studenten websites te bouwen. Hiervoor leren ze HTML/CSS voor de opmaak en gebruiken ze PHP als server-side scripttaal.
 
@@ -44,30 +63,26 @@ Het is wenselijk dat de webserver en ftp-server bereikbaar zijn onder een domein
 
 Dit wordt gerealiseerd door middel van een aangepaste hosts file op de client of een DNS-record op een bestaande DNS-server. Er wordt geen DNS-server ingericht.
 
-### Overige eisen
-Overige eisen voor de server benoemd in de opdracht worden meegenomen tijdens de installatie, zoals backups, beveiliging van de server, alleen benodigde services, etc.
+### Aanvullende eisen
+Overige eisen voor de server benoemd in de opdracht worden meegenomen tijdens de installatie. Aanvullende eisen voor de server zijn:
+
+- ✅Verplicht op CentOS (afwijken in overleg met de docent)
+- ✅Zo kaal mogelijk draaien, geen overbodige services.
+- ✅Beheerders en testusers zijn aangemaakt.
+- ✅Maximale beveiliging.
+- ✅Vaste IP-adressen gebruiken
+- ✅Volledig gepatched en ge-updated.
+- ✅Alles commando-based.
+- ✅Bij reboot moet alles automatisch gestart worden
+- Backup en restore procedure
+- ✅Minimaal 2 onderhoudsscripts
+- ✅SSH service voor beheer op afstand
+- ✅Koppeling met NTP server
+- Logging
+- ✅Defensieve permissiestructuur (alleen rechten daar waar nodig)
 
 ### Out of scope
 ***Database-server:*** voor uitgebreidere websites wordt vaak een database gebruikt om gegevens in op te slaan.  We gaan in deze use-case uit van eenvoudige (semi-statische) websites, waarbij geen data worden opgeslagen in een database. De installatie van een databaseserver valt dan ook buiten de scope van de opdracht.
-
-## Eisen
-
-Aanvullende eisen voor de server:
-
-- Verplicht op CentOS (afwijken in overleg met de docent)
-- Zo kaal mogelijk draaien, geen overbodige services.
-- Beheerders en testusers zijn aangemaakt.
-- Maximale beveiliging.
-- Vaste IP-adressen gebruiken
-- Volledig gepatched en ge-updated.
-- Alles commando-based.
-- Bij reboot moet alles automatisch gestart worden
-- Backup en restore procedure
-- Minimaal 2 onderhoudsscripts
-- SSH service voor beheer op afstand
-- Koppeling met NTP server
-- Logging
-- Defensieve permissiestructuur (alleen rechten daar waar nodig)
 
 ## Installatie Linux
 Voor de installatie wordt de Linux distributie CentOS Stream 10 gebruikt. Hiervoor wordt een Virtual Machine aangemaakt in VMWare met 2GB geheugen, 2 processoren en 30GB harddisk.
@@ -85,6 +100,57 @@ Bovenstaande verwijdert gecachte metadata en installeert de laatste updates van 
 Omdat mogelijk de kernel is geüpdatet, voeren we een reboot uit:
 
 ```sudo reboot```
+
+## Gebruik maken van NTP
+
+We willen de tijd van de server automatisch synchroniseren met een internet timeserver. Standaard is Chrony al geinstalleerd. Dit kunnen we als volgt checken:
+
+```sudo systemctl status chronyd```
+
+Wat resulteert in de volgende output:
+
+```
+● chronyd.service - NTP client/server
+     Loaded: loaded (/usr/lib/systemd/system/chronyd.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2025-04-21 19:07:23 CEST; 1 week 5 days ago
+     [...]
+```
+
+Om de service (nog) betrouwbaarder te maken, kunnen extra servers worden toegevoegd (door het toevoegen van extra server-pools):
+
+```sudo nano /etc/chrony.conf```
+
+Hieraan zijn vervolgens de Nederlandse NTP-poolservers en de Europese fallback toegevoegd:
+
+```
+# Use public servers from the pool.ntp.org project.
+# Please consider joining the pool (https://www.pool.ntp.org/join.html).
+pool 2.centos.pool.ntp.org iburst
+
+# Nederlandse NTP-poolservers
+pool 0.nl.pool.ntp.org iburst
+pool 1.nl.pool.ntp.org iburst
+pool 2.nl.pool.ntp.org iburst
+pool 3.nl.pool.ntp.org iburst
+
+# Europese fallback
+pool 0.europe.pool.ntp.org iburst
+pool 1.europe.pool.ntp.org iburst
+```
+
+Na het wijzigen van het bestand moet de service worden geherstart:
+
+```sudo systemctl restart chronyd```
+
+Vervolgens kan de status worden gecheckt:
+
+```chronyc sources -v```
+
+Wat resulteert in het volgende overzicht:
+
+![Chrony status](documentation/chrony-status.png)
+
+
 
 ## Statisch IP adres instellen
 
@@ -424,3 +490,52 @@ Het is nu mogelijk om de server via HTTPS te benaderen:
 - https://linux.martencs.nl
 - https://linux.martencs.nl/alice
 
+
+## Security
+
+Om de server extra veilig te maken, is het goed om zo min mogelijk zaken geinstalleerd en/of draaiend te hebben op de server. Daarom zijn vervolgens verschillende stappen gezet om dit te beperken.
+
+### Verwijderen van onnodige services
+
+Hiervoor heb ik een lijst van services opgevraagd die gestart zijn:
+
+```systemctl list-unit-files --type=service | grep -e enabled.*enabled```
+
+![Services enabled before cleanup](documentation/services-enabled-before.png)
+
+Vervolgens heb ik ChatGPT gevraagd om deze lijst te analyseren en mij aanbevelingen te geven voor services die kunnen worden uitgeschakeld. Hiervoor is vervolgens het script clean_services.sh gegenereerd, waaraan ik een kleine aanpassing heb gedaan om bepaalde services uit te sluiten en toevoegingen heb gemaakt om ook _sockets_ en _paths_  uit te schakelen.
+
+ℹ️ **De code voor dit script is te vinden in [clean_services.sh](create_student_site.sh)**
+
+Dit script is vervolgens op de server aangemaakt en uitgevoerd:
+
+```sudo ./clean_services.sh```
+
+Daarna is wederom een reboot uitgevoerd om te controleren of alles nog werkt:
+
+```sudo reboot```
+
+```systemctl list-unit-files --type=service | grep -e enabled.*enabled```
+
+![Services enabled after cleanup](documentation/services-enabled-after.png)
+
+### Beperken open poorten
+
+Om te kijken welke poorten open staan, wordt het volgende commando uitgevoerd:
+
+```ss -tulpn```
+
+Dit levert het volgende resultaat op:
+
+![Ports open vooraf](documentation/ports-before.png)
+
+- poort 80 en 443 worden gebruikt door Apache
+- poort 22 wordt gebruikt voor SSH-toegang
+- poort 9090 wordt meestal gebruikt voor Cockpit
+- poort 323 wordt gebruikt voor Chrony (NTP)
+
+Een controle door middel van ```systemctl list-units | grep cockpit``` toont inderdaad aan dat poort 9090 wordt gebruikt voor cockpit. Deze schakelen we uit omdat we dit niet nodig hebben:
+
+```sudo systemctl disable --now cockpit.socket```
+
+![Ports open achteraf](documentation/ports-after.png)
