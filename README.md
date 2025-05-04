@@ -90,11 +90,11 @@ Omdat mogelijk de kernel is geüpdatet, voeren we een reboot uit:
 
 Wijzigen van het IP-adres naar een statisch IP, zodat dit niet meer wijzigt na een reboot. Op deze manier is de server vanaf de host altijd via dit IP benaderbaar. Dit is ook belangrijk voor het straks verwijzen naar deze server d.m.v. een domeinnaam.
 
-```sudo nmcli con modify ens33 ipv4.addresses 172.23.88.98/20```
+```sudo nmcli con modify ens33 ipv4.addresses 172.24.245.109/20```
 
-```sudo nmcli con modify ens33 ipv4.gateway 172.23.80.1```
+```sudo nmcli con modify ens33 ipv4.gateway 172.24.240.1```
 
-```sudo nmcli con modify ens33 ipv4.dns "172.23.80.1"```
+```sudo nmcli con modify ens33 ipv4.dns "172.24.240.1"```
 
 ```sudo nmcli con modify ens33 ipv4.method manual```
 
@@ -129,7 +129,7 @@ Om de server bereikbaar te maken onder een domeinnaam moet deze toegevoegd worde
 Het volgende record is toegevoegd aan de nameserver voor martencs.nl:
 
 ```DNS
-172.23.88.98 linux.martencs.nl
+linux.martencs.nl.	0	IN	A	172.24.245.109
 ```
 
 Vervolgens is op de server gecontroleerd of deze juist _resolved_:
@@ -139,7 +139,7 @@ Vervolgens is op de server gecontroleerd of deze juist _resolved_:
 Met als resultaat:
 
 ```
-172.23.88.98
+172.24.245.109
 ```
 
 Dit betekent dat nu ook bijvoorbeeld de volgende URL's kunnen worden gebruikt vanaf het host-systeem om de server te benaderen:
@@ -163,8 +163,6 @@ Om te controleren dat Apache draait typen we:
 Vervolgens moeten we de server nog beschikbaar maken van buitenaf, door de firewall te configureren:
 
 ```sudo firewall-cmd --permanent --add-service=http```
-
-```sudo firewall-cmd --permanent --add-service=https```
 
 ```sudo firewall-cmd --reload```
 
@@ -304,51 +302,128 @@ Wanneer ook de gebruiker moet worden verwijderd:
 
 ```./remove_student_site.sh alice delete```
 
-## HTTPS Configureren (incl. certificaat)
+## HTTPS activeren
 
-Enable EPEL
+### Tools installeren voor certificaat aanvraag
 
-```sudo dnf install epel-release -y```
+Om een domeincertificaat aan te maken maken we gebruik van certbot, een tool die een certificaat kan aanvragen bij Let's Encrypt, een organisatie die domein-certificaten uitgeeft. Hiervoor moet certbot eerst geinstalleerd worden. 
 
-Installeer en activeer snap en creeer een symbolic link naar snap
+Hiervoor installeren we achtereenvolgens:
+- EPEL - Extra Packages for Enterprise Linux, nodig om Snap te kunnen installeren
 
-```sudo dnf install snapd -y```  
+  ```sudo dnf install epel-release -y```
 
-```sudo systemctl enable --now snapd.socket```
+- Snap - Een package manager ontwikkeld door Canonical, nodig om Certbot te kunnen installeren
 
-```sudo ln -s /var/lib/snapd/snap /snap```
+  ```sudo dnf install snapd -y```  
 
-Installeer certbot en creeer een symbolic link naar certbot
+  ```sudo systemctl enable --now snapd.socket```
 
-```sudo snap install --classic certbot```
+  ```sudo ln -s /var/lib/snapd/snap /snap```
 
-```sudo ln -s /snap/bin/certbot /usr/bin/certbot```
+- Certbot - Certbot is de tool om SSL-certificaten van Let's Encrypt aan te vragen
 
+  ```sudo snap install --classic certbot```
+
+  ```sudo ln -s /snap/bin/certbot /usr/bin/certbot```
+
+### Certificaat aanvragen
 Vervolgens maken we een certificaat aan voor het domein linux.martencs.nl. Omdat dit domein niet van buitenaf door Let's Encrypt te bereiken is (maar alleen vanaf onze host computer), gebruiken we de optie om een TXT-record toe te voegen aan de DNS om te bewijzen dat het domein van ons is.
 Dat doen we als volgt:
 
 
 ```sudo certbot certonly --manual --preferred-challenges dns -d linux.martencs.nl```
 
+Certbot vraagt vervolgens om een TXT record aan te maken
+
+![Certbot request](documentation/certbot-request.png)
+
+Het volgende record is toegevoegd aan de nameserver:
+
+```DNS
+_acme-challenge.linux.martencs.nl. 0 IN	TXT	"PX13ign088uv-s0E9hfpHAe0fB_70ZHqEIof5LWi6RY"
+```
+
+Vervolgens is op de server gecontroleerd of deze juist _resolved_:
+
+```dig +short TXT _acme-challenge.linux.martencs.nl```
+
+Met als resultaat:
+
+```
+"PX13ign088uv-s0E9hfpHAe0fB_70ZHqEIof5LWi6RY"
+```
+
 Na verificatie van het domein is het certificaat aangemaakt in de folder ```/etc/letsencrypt/live/linux.martencs.nl/```
 
 Er staan hier twee bestanden:
 
-- ```fullchain.pem``` — your full certificate (cert + chain)
+- ```fullchain.pem``` - het volledige certificaat (cert en chain)
 
-- ```privkey.pem``` — your private key
+- ```privkey.pem``` - de private key
 
-Zorg ervoor dat Apache gebruik maakt van deze certificaten door de SSL configuratie aan te passen:
+### HTTPS Configureren
 
-```nano /etc/httpd/conf.d/ssl.conf```
+Om gebruik te kunnen maken van SSL moeten we deze module in Apache toevoegen:
 
-Pas de volgende regels aan:
+```sudo dnf install mod_ssl -y```
+
+Om Apache te laten luisteren op poort 443 moet de configuratie worden aangepast:
+
+```sudo nano /etc/httpd/conf/httpd.conf```
+
+Voeg hieraan de volgende regel toe (dit kan bovenin het bestand):
 
 ```
-SSLCertificateFile /etc/letsencrypt/live/linux.marten.nl/fullchain.pem
-SSLCertificateKeyFile /etc/letsencrypt/live/linux.marten.nl/privkey.pem
+ServerName linux.martencs.nl
+```
+
+En voeg onder de regel "Listen 80" de regel "Listen 443" toe:
+
+```
+Listen 80
+Listen 433
+```
+
+Vervolgens moet Apache verteld worden voor linux.martencs.nl te luisteren op poort 443 en daarbij de eerder aangemaakte certificaten te gebruiken voor een beveiligde verbinding:
+
+```sudo nano /etc/httpd/conf.d/linux.martencs.nl.conf```
+
+Zet het volgende in dit bestand:
+```
+<VirtualHost *:443>
+    ServerName linux.martencs.nl
+
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/linux.martencs.nl/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/linux.martencs.nl/privkey.pem
+
+    <Directory /var/www/html>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    ErrorLog logs/linux.martencs.nl-ssl-error.log
+    CustomLog logs/linux.martencs.nl-ssl-access.log combined
+</VirtualHost>
+
 ```
 
 Start vervolgens Apache opnieuw:
 
-```sudo systemctl reload httpd```
+```sudo systemctl restart httpd```
+
+Als laatste moeten we ook de firewall nog configureren om https door te laten:
+
+```sudo firewall-cmd --permanent --add-service=https```
+
+```sudo firewall-cmd --reload```
+
+Het is nu mogelijk om de server via HTTPS te benaderen:
+
+- https://linux.martencs.nl
+- https://linux.martencs.nl/alice
+
