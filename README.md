@@ -366,10 +366,11 @@ Wanneer ook de gebruiker moet worden verwijderd:
 ```./remove_student_site.sh alice delete```
 
 ## HTTPS activeren
+Om HTTPS te kunnen gebruiken op de webserver, moet een TLS/SSL-certificaat aanwezig zijn op de server, waarmee het verkeer tussen server en client versleuteld kan worden. Dit kan met een _self signed_ certificaat voor testdoeleinden, maar in een productieomgeving zoals deze moet het certificaat aangevraagd worden via een Certificate Authority (CA). _Let's Encrypt_ is zo'n CA, waar je kostenloos een TLS/SSL-certificaat kan aanvragen. Het certificaat is een _[domain-validated certificate](https://en.wikipedia.org/wiki/Domain-validated_certificate)_ wat betekent dat het uitgegeven wordt nadat je bewezen hebt dat je controle hebt over het domein.
 
 ### Tools installeren voor certificaat aanvraag
 
-Om een domeincertificaat aan te maken maken we gebruik van certbot, een tool die een certificaat kan aanvragen bij Let's Encrypt, een organisatie die domein-certificaten uitgeeft. Hiervoor moet certbot eerst geinstalleerd worden. 
+Om een certificaat aan te maken maken we gebruik van certbot, een tool die een certificaat aanvraagt bij Let's Encrypt. Hiervoor moet certbot eerst geinstalleerd worden. 
 
 Hiervoor installeren we achtereenvolgens:
 - EPEL - Extra Packages for Enterprise Linux, nodig om Snap te kunnen installeren
