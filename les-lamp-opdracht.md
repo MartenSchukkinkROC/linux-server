@@ -62,7 +62,7 @@ We herstarten Apache om PHP te activeren in Apache:
 
 Maak een testbestand aan door middel van het volgende commando:
 
-```echo "<?php phpinfo(); ?>" | sudo tee /var/www/html/info.php```
+```echo "<?php phpinfo(); ?>" > /var/www/html/info.php```
 
 In dit PHP-script wordt de functie phpinfo() aangeroepen, die informatie geeft over de geinstalleerde PHP. Als je nu naar http://localhost/info.php gaat, dan wordt het script uitgevoerd en verschijnt een pagina met allerlei PHP informatie.
 
