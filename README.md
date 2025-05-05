@@ -539,3 +539,64 @@ Een controle door middel van ```systemctl list-units | grep cockpit``` toont ind
 ```sudo systemctl disable --now cockpit.socket```
 
 ![Ports open achteraf](documentation/ports-after.png)
+
+## Backup
+
+### Backup-disk toevoegen en mounten
+Er is een aparte schijf toegevoegd aan de Virtuele Machine van 30GB. Deze zal worden gebruikt voor backups.
+
+Met ```lsblk``` kan achterhaald worden dat deze bekend is onder de naam _sdb_
+
+```sudo file -s /dev/sdb``` geeft als antwoord _data_, wat betekent dat de schijf nog moet worden geformateerd. Dit wordt gedaan met het commando 
+```sudo mkfs.ext4 /dev/sdb```
+
+Vervolgens moet een mountpoint worden aangemaakt met ```sudo mkdir -p /mnt/backup``` en moet de disk worden gemount met ```sudo mount /dev/sdb /mnt/backup```
+
+Dit kan vervolgens worden gecontroleerd met het commando ```df -h```. In de output moet de mount terug te vinden zijn:
+
+```
+/dev/sdb              30G   24K   28G   1% /mnt/backup
+```
+
+Om deze schijf permanent te mounten hebben we het UUID nodig van de schijf. Deze kan worden opgevraagd met ```sudo blkid /dev/sdb``` en geeft de volgende output:
+
+```
+/dev/sdb: UUID="8e94c6fa-6f67-445c-b356-1d4157948b08" BLOCK_SIZE="4096" TYPE="ext4"
+```
+
+Vervolgens passen we het bestand _/etc/fstab_ aan:
+
+```sudo nano /etc/fstab```
+
+En voegen de volgende regel toe:
+
+```
+UUID=8e94c6fa-6f67-445c-b356-1d4157948b08  /mnt/backup  ext4  defaults  0 2
+```
+
+Om te controleren dat de mount permanent is toegevoegd, rebooten we met het commando ```sudo reboot```
+
+### Dagelijkse backup
+
+Om backups te maken is een script gemaakt dat:
+- Een backup maakt van belangrijke folders naar een folder _/mnt/backup/daily-yyyy-mm-dd_
+- De uitkomst van de backup logt naar een logbestand _mnt/backup/backup-yyyy-mm-dd.log_
+- Backups ouder dan 30 dagen opruimt
+
+ℹ️ **De code voor dit script is te vinden in [backup.sh](backup.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
+
+Dit script is vervolgens ingesteld om dagelijks uit te voeren:
+
+```sudo crontab -e```
+
+Hieraan is de volgende regel toegevoegd:
+
+```
+15 1 * * * /usr/local/bin/backup.sh
+```
+
+Dit betekent dat dagelijks om 1:15 een backup wordt gemaakt.
+
+## Logging
+
+TODO
