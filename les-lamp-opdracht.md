@@ -1,5 +1,16 @@
 # Les De LAMP Stack
 
+## Doel van deze opdracht
+Het installeren van de LAMP-stack en het maken en uitvoeren van een PHP-bestand dat data uit een database haalt.
+
+Hiervoor worden de volgende stappen uitgevoerd:
+- Op CentOS 8 installeren van Apache, MariaDB en PHP
+- Het aanmaken van de database “ICT” en tabel “Vakken” in MariaDB
+- Het maken van een PHP-script om vakken op te halen en te tonen
+- Het uitvoeren van het gemaakte PHP-script
+
+Voor deze opdracht gaan we er vanuit dat je CentOS 8 geinstalleerd hebt in een Virtuele Machine, waarop je onderstaande commando's uitvoert.
+
 ## Log in als root
 
 ```su -```
