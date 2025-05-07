@@ -150,7 +150,7 @@ marten@localhost:~$ ip address
     link/ether 00:0c:29:ec:e2:eb brd ff:ff:ff:ff:ff:ff
     altname enp2s1
     altname enx000c29ece2eb
-    inet 172.23.88.98/20 brd 172.23.95.255 scope global noprefixroute ens33
+    inet 172.24.245.109/20 brd 172.24.255.255 scope global noprefixroute ens33
        valid_lft forever preferred_lft forever
     inet6 fe80::20c:29ff:feec:e2eb/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
