@@ -1,4 +1,4 @@
-# Linux Server project
+# Linux Server project - Handleiding / instructie
 
 
 <table>
@@ -74,15 +74,37 @@ Overige eisen voor de server benoemd in de opdracht worden meegenomen tijdens de
 - ✅Volledig gepatched en ge-updated.
 - ✅Alles commando-based.
 - ✅Bij reboot moet alles automatisch gestart worden
-- Backup en restore procedure
+- ✅Backup en restore procedure
 - ✅Minimaal 2 onderhoudsscripts
 - ✅SSH service voor beheer op afstand
 - ✅Koppeling met NTP server
-- Logging
+- ✅Logging
 - ✅Defensieve permissiestructuur (alleen rechten daar waar nodig)
 
 ### Out of scope
 ***Database-server:*** voor uitgebreidere websites wordt vaak een database gebruikt om gegevens in op te slaan.  We gaan in deze use-case uit van eenvoudige (semi-statische) websites, waarbij geen data worden opgeslagen in een database. De installatie van een databaseserver valt dan ook buiten de scope van de opdracht.
+
+## Opbouw van deze handleiding/instructie
+
+Deze handleiding/instructie legt uit hoe het bovenstaande ontwerp is gerealiseerd. Hierbij beschrijven punten 2 t/m 7 met name de gerealiseerde functionaliteiten
+
+1. Installatie Linux
+2. Statisch IP adres instellen
+3. Domeinnaamverwijzing
+4. Installatie Apache webserver en PHP
+5. Webfolder aanmaken voor student
+6. Webfolder verwijderen voor student
+7. HTTPS activeren
+   - Tools installeren voor certificaat aanvraag
+   - Certificaat aanvragen
+   - HTTPS configureren
+8. Security en logging
+   - Verwijderen van onnodige services
+   - Beperken open poorten
+   - Syslog en audit
+9. Backup
+   - Backup-disk toevoegen en mounten
+   - Dagelijkse backup
 
 ## Installatie Linux
 Voor de installatie wordt de Linux distributie CentOS Stream 10 gebruikt. Hiervoor wordt een Virtual Machine aangemaakt in VMWare met 2GB geheugen, 2 processoren en 30GB harddisk.
@@ -100,57 +122,6 @@ Bovenstaande verwijdert gecachte metadata en installeert de laatste updates van 
 Omdat mogelijk de kernel is geüpdatet, voeren we een reboot uit:
 
 ```sudo reboot```
-
-## Gebruik maken van NTP
-
-We willen de tijd van de server automatisch synchroniseren met een internet timeserver. Standaard is Chrony al geinstalleerd. Dit kunnen we als volgt checken:
-
-```sudo systemctl status chronyd```
-
-Wat resulteert in de volgende output:
-
-```
-● chronyd.service - NTP client/server
-     Loaded: loaded (/usr/lib/systemd/system/chronyd.service; enabled; preset: enabled)
-     Active: active (running) since Mon 2025-04-21 19:07:23 CEST; 1 week 5 days ago
-     [...]
-```
-
-Om de service (nog) betrouwbaarder te maken, kunnen extra servers worden toegevoegd (door het toevoegen van extra server-pools):
-
-```sudo nano /etc/chrony.conf```
-
-Hieraan zijn vervolgens de Nederlandse NTP-poolservers en de Europese fallback toegevoegd:
-
-```
-# Use public servers from the pool.ntp.org project.
-# Please consider joining the pool (https://www.pool.ntp.org/join.html).
-pool 2.centos.pool.ntp.org iburst
-
-# Nederlandse NTP-poolservers
-pool 0.nl.pool.ntp.org iburst
-pool 1.nl.pool.ntp.org iburst
-pool 2.nl.pool.ntp.org iburst
-pool 3.nl.pool.ntp.org iburst
-
-# Europese fallback
-pool 0.europe.pool.ntp.org iburst
-pool 1.europe.pool.ntp.org iburst
-```
-
-Na het wijzigen van het bestand moet de service worden geherstart:
-
-```sudo systemctl restart chronyd```
-
-Vervolgens kan de status worden gecheckt:
-
-```chronyc sources -v```
-
-Wat resulteert in het volgende overzicht:
-
-![Chrony status](documentation/chrony-status.png)
-
-
 
 ## Statisch IP adres instellen
 
@@ -172,11 +143,9 @@ Na de wijzigingen de netwerkadapter uit- en inschakelen, zodat deze instellingen
 
 Controleren of de configuratie goed is gegaan:
 
-```ip adress```
-
-Geeft:
-
 ```
+marten@localhost:~$ ip address
+[...]
 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 00:0c:29:ec:e2:eb brd ff:ff:ff:ff:ff:ff
     altname enp2s1
@@ -200,11 +169,8 @@ linux.martencs.nl.	0	IN	A	172.24.245.109
 
 Vervolgens is op de server gecontroleerd of deze juist _resolved_:
 
-```dig +short A linux.martencs.nl```
-
-Met als resultaat:
-
 ```
+marten@localhost:~$ dig +short A linux.martencs.nl
 172.24.245.109
 ```
 
@@ -276,7 +242,7 @@ Dit script wordt op de volgende manier aangemaakt:
 
 ```nano create_student_site.sh```
 
-ℹ️ **De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
+> ℹ️ **De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
 Sla op met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en sluit af met <kbd>CTRL</kbd>-<kbd>X</kbd>
 
@@ -351,7 +317,7 @@ Dit script wordt op de volgende manier aangemaakt:
 
 ```nano remove_student_site.sh```
 
-ℹ️ **De code voor dit script is te vinden in [remove_student_site.sh](remove_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
+> ℹ️ **De code voor dit script is te vinden in [remove_student_site.sh](remove_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
 Om het script te kunnen uitvoeren moet het executable gemaakt worden:
 
@@ -410,17 +376,12 @@ _acme-challenge.linux.martencs.nl. 0 IN	TXT	"PX13ign088uv-s0E9hfpHAe0fB_70ZHqEIo
 
 Vervolgens is op de server gecontroleerd of deze juist _resolved_:
 
-```dig +short TXT _acme-challenge.linux.martencs.nl```
-
-Met als resultaat:
-
 ```
+marten@localhost:~$ dig +short TXT _acme-challenge.linux.martencs.nl
 "PX13ign088uv-s0E9hfpHAe0fB_70ZHqEIof5LWi6RY"
 ```
 
-Na verificatie van het domein is het certificaat aangemaakt in de folder ```/etc/letsencrypt/live/linux.martencs.nl/```
-
-Er staan hier twee bestanden:
+Na verificatie van het domein is het certificaat aangemaakt in de folder /etc/letsencrypt/live/linux.martencs.nl/. Er staan hier twee bestanden:
 
 - ```fullchain.pem``` - het volledige certificaat (cert en chain)
 
@@ -491,8 +452,53 @@ Het is nu mogelijk om de server via HTTPS te benaderen:
 - https://linux.martencs.nl
 - https://linux.martencs.nl/alice
 
+## Gebruik maken van NTP
 
-## Security
+We willen de tijd van de server automatisch synchroniseren met een internet timeserver. Standaard is Chrony al geinstalleerd. Dit kunnen we als volgt checken:
+
+```
+marten@localhost:~$ sudo systemctl status chronyd
+● chronyd.service - NTP client/server
+     Loaded: loaded (/usr/lib/systemd/system/chronyd.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2025-04-21 19:07:23 CEST; 1 week 5 days ago
+     [...]
+```
+
+Om de service (nog) betrouwbaarder te maken, kunnen extra servers worden toegevoegd (door het toevoegen van extra server-pools):
+
+```sudo nano /etc/chrony.conf```
+
+Hieraan zijn vervolgens de Nederlandse NTP-poolservers en de Europese fallback toegevoegd:
+
+```
+# Use public servers from the pool.ntp.org project.
+# Please consider joining the pool (https://www.pool.ntp.org/join.html).
+pool 2.centos.pool.ntp.org iburst
+
+# Nederlandse NTP-poolservers
+pool 0.nl.pool.ntp.org iburst
+pool 1.nl.pool.ntp.org iburst
+pool 2.nl.pool.ntp.org iburst
+pool 3.nl.pool.ntp.org iburst
+
+# Europese fallback
+pool 0.europe.pool.ntp.org iburst
+pool 1.europe.pool.ntp.org iburst
+```
+
+Na het wijzigen van het bestand moet de service worden geherstart:
+
+```sudo systemctl restart chronyd```
+
+Vervolgens kan de status worden gecheckt:
+
+```chronyc sources -v```
+
+Wat resulteert in het volgende overzicht:
+
+![Chrony status](documentation/chrony-status.png)
+
+## Security en logging
 
 Om de server extra veilig te maken, is het goed om zo min mogelijk zaken geinstalleerd en/of draaiend te hebben op de server. Daarom zijn vervolgens verschillende stappen gezet om dit te beperken.
 
@@ -541,22 +547,128 @@ Een controle door middel van ```systemctl list-units | grep cockpit``` toont ind
 
 ![Ports open achteraf](documentation/ports-after.png)
 
+### Syslog en audit
+
+Syslog is standaard geinstalleerd op CentOS. Dit kunnen we checken met het volgende commando:
+
+```
+marten@localhost:~$ sudo systemctl status rsyslog
+● rsyslog.service - System Logging Service
+     Loaded: loaded (/usr/lib/systemd/system/rsyslog.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2025-05-06 15:21:14 CEST; 21h ago
+     [...]
+```
+
+Daarnaast is ook auditd geinstalleerd op CentOS. Ook dit kunnen we checken:
+
+```
+marten@localhost:~$ sudo systemctl status auditd
+● auditd.service - Security Audit Logging Service
+     Loaded: loaded (/usr/lib/systemd/system/auditd.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2025-05-06 15:21:09 CEST; 21h ago
+     [...]
+```
+
+Om te checken of er al auditregels zijn: 
+
+```
+marten@localhost:~$ sudo sudo auditctl -l
+No rules
+```
+
+Om regels toe te voegen die extra monitoring doen op het systeem en dit ook permanent te maken voeren we het volgende commando uit:
+
+```sudo nano /etc/audit/rules.d/audit.rules```
+
+Vervolgens voegen we het onderstaande toe aan het bestand:
+
+```
+## Monitor wijzigigen van gebruikers- en groepsbestanden
+-w /etc/passwd -p wa -k passwd_changes
+-w /etc/shadow -p wa -k shadow_changes
+-w /etc/group -p wa -k group_changes
+-w /etc/gshadow -p wa -k gshadow_changes
+
+## Monitor wijzigingen aan SSH comfiguratie
+-w /etc/ssh/sshd_config -p wa -k ssh_config
+-w /etc/ssh/ssh_config -p wa -k ssh_config
+
+## Monitor gebruik systeem calls
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=4294967295 -k sudo_used
+-a always,exit -F path=/bin/su -F perm=x -F auid>=1000 -F auid!=4294967295 -k su_used
+```
+
+> ```-w``` wordt gebruikt om bestanden te monitoren (Watch Rule)
+>
+>```-p wa``` geeft aan _write to file_ en _attributes_ te monitoren
+>
+> ```-a always,exit``` wordt gebruikt om systeemcalls te monitoren >(Syscall Audit Rule), altijd bij beeindigen commando
+> ```path``` geeft aan om welk commando het gaat
+> 
+> ```-F perm=x``` filteren op uitvoeren (eXecute) van het bestand
+> 
+> ```-F auid>=1000``` filteren op echte gebruikers (geen systeemgebruikers)
+> 
+> ```-k <tag>``` tag voor logzoekopdrachten
+
+Om deze regels ook te laden voeren we het volgende commando uit:
+
+```sudo augenrules --load```
+
+Vervolgens kunnen we de regels checken:
+
+```
+marten@localhost:~$ sudo sudo auditctl -l
+-w /etc/passwd -p wa -k passwd_changes
+-w /etc/shadow -p wa -k shadow_changes
+-w /etc/group -p wa -k group_changes
+-w /etc/gshadow -p wa -k gshadow_changes
+-w /etc/ssh/sshd_config -p wa -k ssh_config
+-w /etc/ssh/ssh_config -p wa -k ssh_config
+-a always,exit -S all -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=-1 -F key=sudo_used
+-a always,exit -S all -F path=/bin/su -F perm=x -F auid>=1000 -F auid!=-1 -F key=su_used
+```
+
 ## Backup
 
 ### Backup-disk toevoegen en mounten
 Er is een aparte schijf toegevoegd aan de Virtuele Machine van 30GB. Deze zal worden gebruikt voor backups.
 
-Met ```lsblk``` kan achterhaald worden dat deze bekend is onder de naam _sdb_
-
-```sudo file -s /dev/sdb``` geeft als antwoord _data_, wat betekent dat de schijf nog moet worden geformateerd. Dit wordt gedaan met het commando 
-```sudo mkfs.ext4 /dev/sdb```
-
-Vervolgens moet een mountpoint worden aangemaakt met ```sudo mkdir -p /mnt/backup``` en moet de disk worden gemount met ```sudo mount /dev/sdb /mnt/backup```
-
-Dit kan vervolgens worden gecontroleerd met het commando ```df -h```. In de output moet de mount terug te vinden zijn:
+Met ```lsblk``` kan achterhaald worden dat deze bekend is onder de naam _sdb_. Vervolgens kan worden gekeken met ```file``` of de schijf moet worden geformateerd (output is dan _data_):
 
 ```
-/dev/sdb              30G   24K   28G   1% /mnt/backup
+marten@localhost:~$ lsblk
+NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+[...]
+sda           8:0    0    30G  0 disk 
+├─sda1        8:1    0     1M  0 part 
+├─sda2        8:2    0     1G  0 part /boot
+└─sda3        8:3    0    29G  0 part 
+  ├─cs-root 253:0    0    27G  0 lvm  /
+  └─cs-swap 253:1    0     2G  0 lvm  [SWAP]
+sdb           8:16   0    30G  0 disk
+sr0          11:0    1  1024M  0 rom
+marten@localhost:~$ sudo file -s /dev/sdb
+data
+
+```
+
+Vervolgens is de disk geformatteerd, een mountpoint aangemaakt en de deisk gemount op dit mountpoint:
+
+```sudo mkfs.ext4 /dev/sdb```
+
+```sudo mkdir -p /mnt/backup```
+
+```sudo mount /dev/sdb /mnt/backup```
+
+Dit kan vervolgens worden gecontroleerd met het commando ```df -h```, in de output is de mount terug te vinden:
+
+```
+marten@localhost:~$ df -h
+Filesystem           Size  Used Avail Use% Mounted on
+[...]
+/dev/sdb              30G  155M   28G   1% /mnt/backup
+[...]
 ```
 
 Om deze schijf permanent te mounten hebben we het UUID nodig van de schijf. Deze kan worden opgevraagd met ```sudo blkid /dev/sdb``` en geeft de volgende output:
@@ -584,9 +696,9 @@ Om backups te maken is een script gemaakt dat:
 - De uitkomst van de backup logt naar een logbestand _mnt/backup/backup-yyyy-mm-dd.log_
 - Backups ouder dan 30 dagen opruimt
 
-ℹ️ **De code voor dit script is te vinden in [backup.sh](backup.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
+> ℹ️ **De code voor dit script is te vinden in [backup.sh](backup.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
-Dit script is vervolgens ingesteld om dagelijks uit te voeren:
+Dit script is vervolgens ingesteld om dagelijks uit te voeren door het toe te voegen aan cron (de job scheduler onder Linux). Met het volgende commando wordt een editor (vi of nano) geopend om de crontab (de lijst met uit te voeren jobs) te wijzigen:
 
 ```sudo crontab -e```
 
@@ -596,8 +708,15 @@ Hieraan is de volgende regel toegevoegd:
 15 1 * * * /usr/local/bin/backup.sh
 ```
 
-Dit betekent dat dagelijks om 1:15 een backup wordt gemaakt.
+Dit betekent dat dagelijks om 1:15 het backupscript wordt uitgevoerd. Na het afsluiten van de editor kun je als volgt controleren of de wijziging juist is doorgevoerd:
 
-## Logging
+```
+marten@localhost:~$ sudo crontab -l
+15 1 * * * /usr/local/bin/backup.sh
+```
 
-TODO
+Wat resulteert in dezelfde regel als is toegevoegd met de optie -e.
+
+## Eindresultaat
+
+Het eindresultaat van deze 
