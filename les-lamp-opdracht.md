@@ -1,4 +1,4 @@
-# Les De LAMP Stack
+# Opdracht: LAMP Stack
 
 ## Doel van deze opdracht
 Het installeren van de LAMP-stack en het maken en uitvoeren van een PHP-bestand dat data uit een database haalt.
