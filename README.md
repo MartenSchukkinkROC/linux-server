@@ -66,20 +66,20 @@ Dit wordt gerealiseerd door middel van een aangepaste hosts file op de client of
 ### Aanvullende eisen
 Overige eisen voor de server benoemd in de opdracht worden meegenomen tijdens de installatie. Aanvullende eisen voor de server zijn:
 
-- ✅Verplicht op CentOS (afwijken in overleg met de docent)
-- ✅Zo kaal mogelijk draaien, geen overbodige services.
-- ✅Beheerders en testusers zijn aangemaakt.
-- ✅Maximale beveiliging.
-- ✅Vaste IP-adressen gebruiken
-- ✅Volledig gepatched en ge-updated.
-- ✅Alles commando-based.
-- ✅Bij reboot moet alles automatisch gestart worden
-- ✅Backup en restore procedure
-- ✅Minimaal 2 onderhoudsscripts
-- ✅SSH service voor beheer op afstand
-- ✅Koppeling met NTP server
-- ✅Logging
-- ✅Defensieve permissiestructuur (alleen rechten daar waar nodig)
+- Verplicht op CentOS (afwijken in overleg met de docent)
+- Zo kaal mogelijk draaien, geen overbodige services.
+- Beheerders en testusers zijn aangemaakt.
+- Maximale beveiliging.
+- Vaste IP-adressen gebruiken
+- Volledig gepatched en ge-updated.
+- Alles commando-based.
+- Bij reboot moet alles automatisch gestart worden
+- Backup en restore procedure
+- Minimaal 2 onderhoudsscripts
+- SSH service voor beheer op afstand
+- Koppeling met NTP server
+- Logging
+- Defensieve permissiestructuur (alleen rechten daar waar nodig)
 
 ### Out of scope
 ***Database-server:*** voor uitgebreidere websites wordt vaak een database gebruikt om gegevens in op te slaan.  We gaan in deze use-case uit van eenvoudige (semi-statische) websites, waarbij geen data worden opgeslagen in een database. De installatie van een databaseserver valt dan ook buiten de scope van de opdracht.
@@ -512,7 +512,7 @@ Hiervoor heb ik een lijst van services opgevraagd die gestart zijn:
 
 Vervolgens heb ik ChatGPT gevraagd om deze lijst te analyseren en mij aanbevelingen te geven voor services die kunnen worden uitgeschakeld. Hiervoor is vervolgens het script clean_services.sh gegenereerd, waaraan ik een kleine aanpassing heb gedaan om bepaalde services uit te sluiten en toevoegingen heb gemaakt om ook _sockets_ en _paths_  uit te schakelen.
 
-ℹ️ **De code voor dit script is te vinden in [clean_services.sh](create_student_site.sh)**
+ℹ️ **De code voor dit script is te vinden in [clean_services.sh](clean_services.sh)**
 
 Dit script is vervolgens op de server aangemaakt en uitgevoerd:
 
