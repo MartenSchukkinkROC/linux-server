@@ -88,30 +88,30 @@ Overige eisen voor de server benoemd in de opdracht worden meegenomen tijdens de
 
 Deze handleiding/instructie legt uit hoe het bovenstaande ontwerp is gerealiseerd. Hierbij beschrijven punten 2 t/m 7 met name de gerealiseerde functionaliteiten
 
-1. Installatie Linux
-2. Statisch IP adres instellen
-3. Domeinnaamverwijzing
-4. Installatie Apache webserver en PHP
-5. Webfolder aanmaken voor student
-6. Webfolder verwijderen voor student
-7. HTTPS activeren
-   - Tools installeren voor certificaat aanvraag
-   - Certificaat aanvragen
-   - HTTPS configureren
-8. Security en logging
-   - Verwijderen van onnodige services
-   - Beperken open poorten
-   - Syslog en audit
-9. Backup
-   - Backup-disk toevoegen en mounten
-   - Dagelijkse backup
+1. [Installatie Linux](#installatie-linux)
+2. [Statisch IP adres instellen](#statisch-ip-adres-instellen)
+3. [Domeinnaamverwijzing](#domeinnaamverwijzing)
+4. [Installatie Apache webserver en PHP](#installatie-apache-webserver-en-php)
+5. [Webfolder aanmaken voor student](#webfolder-aanmaken-voor-student)
+6. [Webfolder verwijderen voor student](#webfolder-verwijderen-voor-de-student)
+7. [HTTPS activeren](#https-activeren)
+   - [Tools installeren voor certificaat aanvraag](#tools-installeren-voor-certificaat-aanvraag)
+   - [Certificaat aanvragen](#certificaat-aanvragen)
+   - [HTTPS configureren](#https-configureren)
+8. [Security en logging](#security-en-logging)
+   - [Verwijderen van onnodige services](#verwijderen-van-onnodige-services)
+   - [Beperken open poorten](#beperken-open-poorten)
+   - [Syslog en audit](#syslog-en-audit)
+9. [Backup](#backup)
+   - [Backup-disk toevoegen en mounten](#backup-disk-toevoegen-en-mounten)
+   - [Dagelijkse backup](#dagelijkse-backup)
 
 ## Installatie Linux
-Voor de installatie wordt de Linux distributie CentOS Stream 10 gebruikt. Hiervoor wordt een Virtual Machine aangemaakt in VMWare met 2GB geheugen, 2 processoren en 30GB harddisk.
+Voor de installatie is de Linux distributie CentOS Stream 10 gebruikt. Hiervoor is een Virtual Machine aangemaakt in VMWare met 2GB geheugen, 2 processoren en 30GB harddisk.
 
-Tijdens de installatie wordt een gebruiker aangemaakt “marten” met als wachtwoord “marten”.
+Tijdens de installatie is een gebruiker aangemaakt “marten” met als wachtwoord “marten”.
 
-Na inloggen op de installatie wordt deze eerst via de terminal geüpdatet naar de laatste versie door middel van:
+Na inloggen op de installatie is deze eerst via de terminal geüpdatet naar de laatste versie door middel van:
 
 ```sudo dnf clean all```
 
@@ -119,13 +119,13 @@ Na inloggen op de installatie wordt deze eerst via de terminal geüpdatet naar d
 
 Bovenstaande verwijdert gecachte metadata en installeert de laatste updates van de CentOS repository
 
-Omdat mogelijk de kernel is geüpdatet, voeren we een reboot uit:
+Omdat mogelijk de kernel is geüpdatet, is een reboot uitgevoerd:
 
 ```sudo reboot```
 
 ## Statisch IP adres instellen
 
-Wijzigen van het IP-adres naar een statisch IP, zodat dit niet meer wijzigt na een reboot. Op deze manier is de server vanaf de host altijd via dit IP benaderbaar. Dit is ook belangrijk voor het straks verwijzen naar deze server d.m.v. een domeinnaam.
+Het dynamische IP-adres is gewijzigd naar een statisch IP, zodat dit niet meer wijzigt na een reboot. Op deze manier is de server vanaf de host altijd via dit IP benaderbaar. Dit is ook belangrijk voor het straks verwijzen naar deze server d.m.v. een domeinnaam.
 
 ```sudo nmcli con modify ens33 ipv4.addresses 172.24.245.109/20```
 
@@ -135,13 +135,13 @@ Wijzigen van het IP-adres naar een statisch IP, zodat dit niet meer wijzigt na e
 
 ```sudo nmcli con modify ens33 ipv4.method manual```
 
-Na de wijzigingen de netwerkadapter uit- en inschakelen, zodat deze instellingen actief worden:
+Na de wijzigingen is de netwerkadapter uit- en ingeschakeld, zodat deze instellingen actief worden:
 
 ```sudo nmcli con down ens33```
 
 ```sudo nmcli con up ens33```
 
-Controleren of de configuratie goed is gegaan:
+Vervolgens is gecontroleerd of de configuratie goed is gegaan:
 
 ```
 marten@localhost:~$ ip address
@@ -174,10 +174,10 @@ marten@localhost:~$ dig +short A linux.martencs.nl
 172.24.245.109
 ```
 
-Op deze manier is de machine ook bereikbaar via de hostname ```linux.martencs.nl``` in plaats van het IP. Dit is belangrijk voor de installatie van de Apache server en HTTPS. 
+Op deze manier is de machine ook bereikbaar via de hostname ```linux.martencs.nl``` in plaats van het IP. Dit is belangrijk voor de installatie van de Apache server en het activeren van HTTPS. 
 
 ## Installatie Apache webserver en PHP
-We willen een webserver draaien waarbij gebruik kan worden gemaakt van PHP. Daarvoor installeren we Apache en starten we deze:
+We willen een webserver draaien waarbij gebruik kan worden gemaakt van PHP. Daarvoor is  Apache geinstalleerd en gestart:
 
 ```sudo dnf install httpd -y```
 
@@ -189,46 +189,46 @@ Om te controleren dat Apache draait typen we:
 
 ![Apache Running Check](documentation/apache-running-check.png)
 
-Vervolgens moeten we de server nog beschikbaar maken van buitenaf, door de firewall te configureren:
+Vervolgens isde server beschikbaar gesteld van buitenaf, door de firewall te configureren:
 
 ```sudo firewall-cmd --permanent --add-service=http```
 
 ```sudo firewall-cmd --reload```
 
-We gaan nu op de host-machine in browser naar http://linux.martencs.nl om te controleren of de server extern bereikbaar is. Dit geeft het volgende resultaat:
+Daarna is gecontroleerd of de server extern bereikbaar is door op de host-machine in de browser naar http://linux.martencs.nl te gaan. Dit geeft het volgende resultaat:
 
 ![Apache Fresh Install](documentation/apache-fresh-install.png)
 
-Om vervolgens PHP te installeren:
+Vervolgens is PHP geinstalleerd:
 
 ```sudo dnf install php php-common php-opcache -y```
 
 Dit installeert de PHP packages die nodig zijn om PHP op de webserver te kunnen gebruiken (en een caching-package voor performance)
 
-Start de Apache server opnieuw op:
+De Apache server is daarna opnieuw opgestart met:
 
 ```sudo systemctl restart httpd```
 
-Om te controleren dat PHP werkt, start nano (tekstverwerker):
+Om te controleren dat PHP werkt, is een PHP-bestand aangemaakt d.m.v. _nano_ (texteditor):
 
 ```sudo nano /var/www/html/info.php```
 
-En type de volgende code:
+Hierin is code gezet om informatie te tonen over php (de functie phpinfo() wordt hierin aangeroepen):
 
 ```<?php phpinfo(); ?>```
 
-Sla op met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en sluit af met <kbd>CTRL</kbd>-<kbd>X</kbd>
+Het bestand daarna is opgeslagen met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en nano afgesloten met <kbd>CTRL</kbd>-<kbd>X</kbd>
 
-Roep vervolgens in de browser de volgende pagina op http://linux.martencs.nl/info.php. Dit geeft het volgende resultaat:
+Vervolgens is in de browser van de host de volgende pagina aangeroepen: http://linux.martencs.nl/info.php. Dit geeft het volgende resultaat:
 
 ![Apache Test Install](documentation/apache-test-install.png)
 
 ## Webfolder aanmaken voor student
-Het aanmaken van een webfolder (een locatie waar de gebruiker zijn webpagina’s kan plaatsen) gebeurt door middel van een script. Voordat dit script kan worden uitgevoerd moet worden aangegeven dat SELinux niet moet blokkeren dat Apache home-directories kan benaderen:
+Het aanmaken van een webfolder (een locatie waar de gebruiker zijn webpagina’s kan plaatsen) gebeurt door middel van een script dat door mij is gemaakt. Voordat dit script kan worden uitgevoerd moet worden aangegeven dat SELinux niet moet blokkeren dat Apache home-directories kan benaderen:
 
 ```sudo setsebool -P httpd_enable_homedirs on```
 
-Het script om de webfolder aan te maken voor de student vraagt als parameter de studentcode van de student:
+Het script om de webfolder aan te maken voor de student vraagt als parameter de studentcode van de student en voert vervolgens de volgende acties uit:
 
 - Het maakt een gebruiker aan op basis van de studentcode zonder wachtwoord, zodat de student niet met een wachtwoord kan inloggen
 - Het maakt een folder ~/public_html aan, de “webfolder” voor de student
@@ -238,23 +238,23 @@ Het script om de webfolder aan te maken voor de student vraagt als parameter de 
 - Het stelt in dat alleen, SFTP kan worden gebruikt en geen SSH
 
 
-Dit script wordt op de volgende manier aangemaakt:
+Dit script is door middel van _nano_ aangemaakt:
 
 ```nano create_student_site.sh```
 
 > ℹ️ **De code voor dit script is te vinden in [create_student_site.sh](create_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
-Sla op met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en sluit af met <kbd>CTRL</kbd>-<kbd>X</kbd>
+Het bestand daarna is opgeslagen met <kbd>CTRL</kbd>+<kbd>O</kbd> en <kbd>ENTER</kbd> en nano afgesloten met <kbd>CTRL</kbd>-<kbd>X</kbd>
 
-Om het script te kunnen uitvoeren moet het executable gemaakt worden:
+Om het script te kunnen uitvoeren is het executable gemaakt:
 
 ```chmod +x create_student_site.sh```
 
-Om vervolgens een gebruiker en home-folder aan te maken voor alice en deze folder toegankelijk te maken via SFTP, gebruik makend van een private key, kan het script als volgt worden aangeroepen:
+Om vervolgens de gebruiker en home-folder aan te maken voor de gebruiker _alice_ en deze folder toegankelijk te maken via SFTP, gebruik makend van een private key, is het script als volgt aangeroepen:
 
 ```./create_student_site.sh alice```
 
-Je kunt nu vanaf de host navigeren naar http://linux.martencs.nl/alice. Dit geeft het volgende resultaat:
+Om te controleren of de home-folder is aangemaakt, is vervolgens op de host genavigeerd naar http://linux.martencs.nl/alice. Dit gaf het volgende resultaat:
 
 ![Apache Test Install](documentation/apache-alice-webfolder.png)
 
@@ -270,7 +270,7 @@ Resultaat:
 
 ![SFTP en SSH Alice](documentation/sftp-ssh-alice.png)
 
-Voor de gebruiker _marten_ kan ook een webfolder aangemaakt en SFTP toegang geconfigureerd:
+Voor de gebruiker _marten_ is ook een webfolder aangemaakt en SFTP toegang geconfigureerd:
 
 ```./create_student_site.sh marten```
 
@@ -293,9 +293,9 @@ Match User marten
     PasswordAuthentication no
 ```
 
-Hiermee wordt de gebruiker _marten_ niet meer beperkt tot SFTP en niet gelockt in zijn eigen home directory.
+Hiermee is de gebruiker _marten_ niet meer beperkt tot SFTP en niet gelockt in zijn eigen home directory.
 
-Wanneer nu bijvoorbeeld met WinSCP een SFTP-connectie wordt gemaakt, resulteert dat in de volgende verbinding:"
+Wanneer nu bijvoorbeeld met WinSCP een SFTP-connectie wordt gemaakt, resulteert dat in de volgende verbinding:
 
 ![WinSCP user marten](documentation/winscp-user-marten.png)
 
@@ -303,7 +303,7 @@ Wanneer nu bijvoorbeeld met WinSCP een SFTP-connectie wordt gemaakt, resulteert 
 
 Het is ook wenselijk om webfolders van studenten weer op te kunnen ruimen. Ook hiervoor is een script gemaakt.
 
-Het script om de webfolder weer te verwijderen voor de student vraagt als parameter de studentcode van de student:
+Het script om de webfolder weer te verwijderen voor de student vraagt als parameter de studentcode van de student en voert vervolgens de volgende acties uit:
 
 - Het verwijdert de folder onder /studentcode in Apache
 - Het verwijdert de SFTP-configuratie
@@ -313,17 +313,17 @@ Het script om de webfolder weer te verwijderen voor de student vraagt als parame
   - Verwijdert de home folder
   - Doet dit alleen wanneer de gebruiker geen systeem/admin gebruiker is
 
-Dit script wordt op de volgende manier aangemaakt:
+Dit script is ook door middel van _nano_ aangemaakt:
 
 ```nano remove_student_site.sh```
 
 > ℹ️ **De code voor dit script is te vinden in [remove_student_site.sh](remove_student_site.sh). Dit script is voorzien van commentaar om de bovenstaande functionaliteiten van het script verder uit te leggen.**
 
-Om het script te kunnen uitvoeren moet het executable gemaakt worden:
+Om het script te kunnen uitvoeren is het executable gemaakt:
 
 ```chmod +x remove_student_site.sh```
 
-Om vervolgens een gebruiker en home-folder aan te maken voor alice en deze folder toegankelijk te maken via SFTP, gebruik makend van een private key, kan het script als volgt worden aangeroepen:
+Om vervolgens de home-folder en SFTP-toegang te verwijderen, kan het script als volgt worden aangeroepen:
 
 ```./remove_student_site.sh alice```
 
@@ -336,9 +336,9 @@ Om HTTPS te kunnen gebruiken op de webserver, moet een TLS/SSL-certificaat aanwe
 
 ### Tools installeren voor certificaat aanvraag
 
-Om een certificaat aan te maken maken we gebruik van certbot, een tool die een certificaat aanvraagt bij Let's Encrypt. Hiervoor moet certbot eerst geinstalleerd worden. 
+Om een certificaat aan te maken is gebruik gemaakt van certbot, een tool die een certificaat aanvraagt bij Let's Encrypt. Hiervoor moet certbot eerst geinstalleerd worden. 
 
-Hiervoor installeren we achtereenvolgens:
+Hiervoor is achtereenvolgens geinstalleerd:
 - EPEL - Extra Packages for Enterprise Linux, nodig om Snap te kunnen installeren
 
   ```sudo dnf install epel-release -y```
@@ -358,8 +358,7 @@ Hiervoor installeren we achtereenvolgens:
   ```sudo ln -s /snap/bin/certbot /usr/bin/certbot```
 
 ### Certificaat aanvragen
-Vervolgens maken we een certificaat aan voor het domein linux.martencs.nl. Omdat dit domein niet van buitenaf door Let's Encrypt te bereiken is (maar alleen vanaf onze host computer), gebruiken we de optie om een TXT-record toe te voegen aan de DNS om te bewijzen dat het domein van ons is.
-Dat doen we als volgt:
+Vervolgens is een certificaat aangemaakt voor het domein linux.martencs.nl. Omdat dit domein niet van buitenaf door Let's Encrypt te bereiken is (maar alleen vanaf onze host computer), hebben we de optie gebruikt om een TXT-record toe te voegen aan de DNS om te bewijzen dat het domein van ons is. Dat hebben we als volgt gedaan:
 
 
 ```sudo certbot certonly --manual --preferred-challenges dns -d linux.martencs.nl```
@@ -389,28 +388,28 @@ Na verificatie van het domein is het certificaat aangemaakt in de folder /etc/le
 
 ### HTTPS Configureren
 
-Om gebruik te kunnen maken van SSL moeten we deze module in Apache toevoegen:
+Om gebruik te kunnen maken van SSL is deze module in Apache toegevoegd:
 
 ```sudo dnf install mod_ssl -y```
 
-Om Apache te laten luisteren op poort 443 moet de configuratie worden aangepast:
+Om Apache te laten luisteren op poort 443 is de configuratie aangepast:
 
 ```sudo nano /etc/httpd/conf/httpd.conf```
 
-Voeg hieraan de volgende regel toe (dit kan bovenin het bestand):
+Hieraan is de volgende regel toegevoegd (dit kan bovenin het bestand):
 
 ```
 ServerName linux.martencs.nl
 ```
 
-En voeg onder de regel "Listen 80" de regel "Listen 443" toe:
+En is de regel "Listen 80" onder de regel "Listen 443" toegevoegd:
 
 ```
 Listen 80
 Listen 433
 ```
 
-Vervolgens moet Apache verteld worden voor linux.martencs.nl te luisteren op poort 443 en daarbij de eerder aangemaakte certificaten te gebruiken voor een beveiligde verbinding:
+Vervolgens is Apache verteld voor linux.martencs.nl te luisteren op poort 443 en daarbij de eerder aangemaakte certificaten te gebruiken voor een beveiligde verbinding:
 
 ```sudo nano /etc/httpd/conf.d/linux.martencs.nl.conf```
 
@@ -437,11 +436,13 @@ Zet het volgende in dit bestand:
 
 ```
 
-Start vervolgens Apache opnieuw:
+Hierboven maken we een virtuele host aan in Apache, die voor alle IP-adressen luistert op poort 443 (HTTPS-poort).
+
+Apache is vervolgens opnieuw opgestart:
 
 ```sudo systemctl restart httpd```
 
-Als laatste moeten we ook de firewall nog configureren om https door te laten:
+Als laatste is de firewall geconfigureerd om https door te laten:
 
 ```sudo firewall-cmd --permanent --add-service=https```
 
@@ -454,7 +455,7 @@ Het is nu mogelijk om de server via HTTPS te benaderen:
 
 ## Gebruik maken van NTP
 
-We willen de tijd van de server automatisch synchroniseren met een internet timeserver. Standaard is Chrony al geinstalleerd. Dit kunnen we als volgt checken:
+We willen de tijd van de server automatisch synchroniseren met een internet timeserver. Standaard is Chrony al geinstalleerd. Dit is als volgt gecheckt:
 
 ```
 marten@localhost:~$ sudo systemctl status chronyd
@@ -464,11 +465,11 @@ marten@localhost:~$ sudo systemctl status chronyd
      [...]
 ```
 
-Om de service (nog) betrouwbaarder te maken, kunnen extra servers worden toegevoegd (door het toevoegen van extra server-pools):
+Om de service (nog) betrouwbaarder te maken, voegen we extra servers toe (door het toevoegen van extra server-pools):
 
 ```sudo nano /etc/chrony.conf```
 
-Hieraan zijn vervolgens de Nederlandse NTP-poolservers en de Europese fallback toegevoegd:
+Hieraan zijn de Nederlandse NTP-poolservers en de Europese fallback toegevoegd:
 
 ```
 # Use public servers from the pool.ntp.org project.
@@ -486,11 +487,11 @@ pool 0.europe.pool.ntp.org iburst
 pool 1.europe.pool.ntp.org iburst
 ```
 
-Na het wijzigen van het bestand moet de service worden geherstart:
+Na het wijzigen van het bestand is de service geherstart:
 
 ```sudo systemctl restart chronyd```
 
-Vervolgens kan de status worden gecheckt:
+Vervolgens is de status gecheckt:
 
 ```chronyc sources -v```
 
@@ -504,13 +505,13 @@ Om de server extra veilig te maken, is het goed om zo min mogelijk zaken geinsta
 
 ### Verwijderen van onnodige services
 
-Hiervoor heb ik een lijst van services opgevraagd die gestart zijn:
+Hiervoor is een lijst van services opgevraagd die gestart zijn:
 
 ```systemctl list-unit-files --type=service | grep -e enabled.*enabled```
 
 ![Services enabled before cleanup](documentation/services-enabled-before.png)
 
-Vervolgens heb ik ChatGPT gevraagd om deze lijst te analyseren en mij aanbevelingen te geven voor services die kunnen worden uitgeschakeld. Hiervoor is vervolgens het script clean_services.sh gegenereerd, waaraan ik een kleine aanpassing heb gedaan om bepaalde services uit te sluiten en toevoegingen heb gemaakt om ook _sockets_ en _paths_  uit te schakelen.
+Vervolgens is ChatGPT gevraagd om deze lijst te analyseren en aanbevelingen te geven voor services die kunnen worden uitgeschakeld. Hiervoor is vervolgens het script clean_services.sh gegenereerd, waaraan kleine aanpassing zijn gedaan om bepaalde services uit te sluiten en toevoegingen om ook _sockets_ en _paths_  uit te schakelen.
 
 ℹ️ **De code voor dit script is te vinden in [clean_services.sh](clean_services.sh)**
 
@@ -528,7 +529,7 @@ Daarna is wederom een reboot uitgevoerd om te controleren of alles nog werkt:
 
 ### Beperken open poorten
 
-Om te kijken welke poorten open staan, wordt het volgende commando uitgevoerd:
+Om te kijken welke poorten open staan, is het volgende commando uitgevoerd:
 
 ```ss -tulpn```
 
@@ -541,7 +542,7 @@ Dit levert het volgende resultaat op:
 - poort 9090 wordt meestal gebruikt voor Cockpit
 - poort 323 wordt gebruikt voor Chrony (NTP)
 
-Een controle door middel van ```systemctl list-units | grep cockpit``` toont inderdaad aan dat poort 9090 wordt gebruikt voor cockpit. Deze schakelen we uit omdat we dit niet nodig hebben:
+Een controle door middel van ```systemctl list-units | grep cockpit``` toont inderdaad aan dat poort 9090 wordt gebruikt voor cockpit. Deze hebben we vervolgens uitgeschakeld  omdat we deze niet nodig hebben:
 
 ```sudo systemctl disable --now cockpit.socket```
 
@@ -549,7 +550,7 @@ Een controle door middel van ```systemctl list-units | grep cockpit``` toont ind
 
 ### Syslog en audit
 
-Syslog is standaard geinstalleerd op CentOS. Dit kunnen we checken met het volgende commando:
+Syslog is standaard geinstalleerd op CentOS. Dit is gecheckt met het volgende commando:
 
 ```
 marten@localhost:~$ sudo systemctl status rsyslog
@@ -559,7 +560,7 @@ marten@localhost:~$ sudo systemctl status rsyslog
      [...]
 ```
 
-Daarnaast is ook auditd geinstalleerd op CentOS. Ook dit kunnen we checken:
+Daarnaast is ook auditd geinstalleerd op CentOS. Ook dit is gecheckt:
 
 ```
 marten@localhost:~$ sudo systemctl status auditd
@@ -576,11 +577,11 @@ marten@localhost:~$ sudo sudo auditctl -l
 No rules
 ```
 
-Om regels toe te voegen die extra monitoring doen op het systeem en dit ook permanent te maken voeren we het volgende commando uit:
+Om regels toe te voegen die extra monitoring doen op het systeem en dit ook permanent te maken is het volgende commando uitgevoerd:
 
 ```sudo nano /etc/audit/rules.d/audit.rules```
 
-Vervolgens voegen we het onderstaande toe aan het bestand:
+Vervolgens zijn de volgende regels toegevoegd aan het bestand:
 
 ```
 ## Monitor wijzigigen van gebruikers- en groepsbestanden
@@ -611,11 +612,11 @@ Vervolgens voegen we het onderstaande toe aan het bestand:
 > 
 > ```-k <tag>``` tag voor logzoekopdrachten
 
-Om deze regels ook te laden voeren we het volgende commando uit:
+Om deze regels ook te laden voeren is volgende commando uitgevoerd:
 
 ```sudo augenrules --load```
 
-Vervolgens kunnen we de regels checken:
+Vervolgens zijn de regels gecheckt:
 
 ```
 marten@localhost:~$ sudo sudo auditctl -l
@@ -634,7 +635,7 @@ marten@localhost:~$ sudo sudo auditctl -l
 ### Backup-disk toevoegen en mounten
 Er is een aparte schijf toegevoegd aan de Virtuele Machine van 30GB. Deze zal worden gebruikt voor backups.
 
-Met ```lsblk``` kan achterhaald worden dat deze bekend is onder de naam _sdb_. Vervolgens kan worden gekeken met ```file``` of de schijf moet worden geformateerd (output is dan _data_):
+Met ```lsblk``` is achterhaald dat deze bekend is onder de naam _sdb_. Vervolgens is gekeken met ```file``` of de schijf moet worden geformateerd (output is dan _data_):
 
 ```
 marten@localhost:~$ lsblk
@@ -653,7 +654,7 @@ data
 
 ```
 
-Vervolgens is de disk geformatteerd, een mountpoint aangemaakt en de deisk gemount op dit mountpoint:
+Vervolgens is de disk geformatteerd, een mountpoint aangemaakt en de disk gemount op dit mountpoint:
 
 ```sudo mkfs.ext4 /dev/sdb```
 
@@ -661,7 +662,7 @@ Vervolgens is de disk geformatteerd, een mountpoint aangemaakt en de deisk gemou
 
 ```sudo mount /dev/sdb /mnt/backup```
 
-Dit kan vervolgens worden gecontroleerd met het commando ```df -h```, in de output is de mount terug te vinden:
+Dit is vervolgens gecontroleerd met het commando ```df -h```, in de output is de mount terug te vinden:
 
 ```
 marten@localhost:~$ df -h
@@ -671,23 +672,23 @@ Filesystem           Size  Used Avail Use% Mounted on
 [...]
 ```
 
-Om deze schijf permanent te mounten hebben we het UUID nodig van de schijf. Deze kan worden opgevraagd met ```sudo blkid /dev/sdb``` en geeft de volgende output:
+Om deze schijf permanent te mounten hebben we het UUID nodig van de schijf. Deze is opgevraagd met ```sudo blkid /dev/sdb```:
 
 ```
 /dev/sdb: UUID="8e94c6fa-6f67-445c-b356-1d4157948b08" BLOCK_SIZE="4096" TYPE="ext4"
 ```
 
-Vervolgens passen we het bestand _/etc/fstab_ aan:
+Vervolgens is het bestand _/etc/fstab_ aangepast:
 
 ```sudo nano /etc/fstab```
 
-En voegen de volgende regel toe:
+En de volgende regel toegevoegd:
 
 ```
 UUID=8e94c6fa-6f67-445c-b356-1d4157948b08  /mnt/backup  ext4  defaults  0 2
 ```
 
-Om te controleren dat de mount permanent is toegevoegd, rebooten we met het commando ```sudo reboot```
+Om te controleren dat de mount permanent is toegevoegd, is gereboot met het commando ```sudo reboot```
 
 ### Dagelijkse backup
 
@@ -719,4 +720,6 @@ Wat resulteert in dezelfde regel als is toegevoegd met de optie -e.
 
 ## Eindresultaat
 
-Het eindresultaat van deze 
+Het eindresultaat van deze opdracht is een server met daarop Apache geinstalleerd, waarop we vervolgens door middel van een script webfolders aan kunnen maken voor studenten, en waarop de studenten door middel van SFTP hun eigen webpagina's op kunnen installeren.
+
+De server is hierbij zodanig geconfigureerd, dat er zo min mogelijk services op draaien en de gegevens dagelijks worden gebackupt.
