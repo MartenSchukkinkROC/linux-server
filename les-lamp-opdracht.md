@@ -19,13 +19,13 @@ We voeren hiermee alle hieronder volgende commando's uit onder de root user
 
 ## Systeem updaten
 
-```sudo dnf update -y```
+```dnf update -y```
 
 Krijg je de fout  _Errors during downloading metadata for repository 'appstream'_, dan wordt nog geen gebruik gemaakt van de nieuwe locatie voor repositories (in verband met _End of Life_ van CentOS 8). Voer dan onderstaande commando's uit:
 
-- ```sudo sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-*.repo```
+- ```sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-*.repo```
 
-- ```sudo sed -i 's|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo```
+- ```sed -i 's|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo```
 
 Dit zorgt ervoor dat de CentOS mirrors worden geupdatet.
 Voer daarna opnieuw het commando uit om het systeem te updaten.
@@ -33,11 +33,11 @@ Voer daarna opnieuw het commando uit om het systeem te updaten.
 ## Apache installeren
 Om Apache te installeren, installeren we de package _httpd_:
 
-```sudo dnf install httpd -y```
+```dnf install httpd -y```
 
 Vervolgens schakelen we httpd in en starten deze direct:
 
-```sudo systemctl enable --now httpd```
+```systemctl enable --now httpd```
 
 Als je nu op CentOS naar http://localhost gaat, dan verschijnt de standaard-pagina van Apache.
 
@@ -48,26 +48,26 @@ Als je nu op CentOS naar http://localhost gaat, dan verschijnt de standaard-pagi
 ## MariaDB installeren
 MariaDB is een alternatief voor MySQL. Om deze te installeren, installeren we de packages _mariadb-server_ en _mariadb_:
 
-```sudo dnf install mariadb-server mariadb -y```
+```dnf install mariadb-server mariadb -y```
 
 Vervolgens schakelen we mariadb in en starten deze direct:
 
-```sudo systemctl enable --now mariadb```
+```systemctl enable --now mariadb```
 
-Omdat we nu geen installatie op een productieserver doem, voeren we NIET de beveiligingsconfiguratie uit. Dit doe je normaal gesproken WEL:
+Omdat we nu geen installatie op een productieserver doen, voeren we NIET de beveiligingsconfiguratie uit. Dit doe je normaal gesproken WEL:
 
-```sudo mysql_secure_installation``` (niet uitvoeren)
+```mysql_secure_installation``` (niet uitvoeren!)
 
 ## PHP installeren
 
 Om PHP te installeren en gebruikt te kunnen maken van MySQL (MariaDB is compatible), installeren we de packages _php_ en _php_mysqlnd_:
 
 
-```sudo dnf install php php-mysqlnd -y```
+```dnf install php php-mysqlnd -y```
 
 We herstarten Apache om PHP te activeren in Apache:
 
-```sudo systemctl restart httpd```
+```systemctl restart httpd```
 
 ### Testen of PHP werkt
 
@@ -218,7 +218,7 @@ $result = $conn->query($sql);
 
 ```
 
-Sla het bestand op met <kbd>CTRL-X</kbd> en sluit nano af met <kbd>CTRL-X</kbd>
+Sla het bestand op met <kbd>CTRL-O</kbd> en sluit nano af met <kbd>CTRL-X</kbd>
 
 Roep vervolgens het bestand aan: http://localhost/vakken.php. Je zou nu een pagina moeten krijgen waarop alle ICT-vakken worden getoond in een nette tabel.
 
@@ -237,6 +237,4 @@ Onderzoek dan:
 
 - Wat er gedaan wordt in het SQL-script
 - Of je (een beetje) kunt begrijpen wat er in het PHP-script gebeurt
-- Wat gebeurt er als je ```sudo mysql_secure_installation``` uitvoert? Werkt het script dan nog? Wat zou er aangepast moeten worden?
-
-
+- Wat gebeurt er als je ```mysql_secure_installation``` uitvoert? Werkt het script dan nog? Wat zou er aangepast moeten worden?
